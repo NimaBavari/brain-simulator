@@ -11,13 +11,13 @@ from src import event_feeder, freq_feeder, redis_client
 
 async def autostore(t, freq, event):
     dataload = base64.b64encode(
-        str({"time": t, "freq": freq, "event": event}).encode("ascii"))
+        str({"time": t, "freq": freq, "event": event}).encode("utf-8"))
     redis_client.lpush("store", dataload)
 
 
 async def autoload(t, freq):
     for mem_in_base64 in redis_client.lrange("store", 0, -1):
-        mem = eval(base64.b64decode(mem_in_base64).decode("ascii"))
+        mem = eval(base64.b64decode(mem_in_base64).decode("utf-8"))
         freq_in_past = freq / (1 - DECAY_DIFF_PER_SEC)**(t - mem["time"])
         if 1 - RADIUS_REL_SIZE < mem["freq"] / freq_in_past < 1 + RADIUS_REL_SIZE:
             return {k: v for k, v in mem.items() if k != "freq"}
